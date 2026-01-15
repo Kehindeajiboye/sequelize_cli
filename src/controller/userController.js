@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const { v4: uuidv4 } = require('uuid')
 const { signupSchema, loginSchema, updateSchema } = require("../validations/userValidation")
-const users = require('../../models/users')
+const {users} = require('../../models')
 
 const createNewUser = async (req, res) => {
     const { error, value } = signupSchema.validate(req.body)
