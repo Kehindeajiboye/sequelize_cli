@@ -2,7 +2,7 @@ require('dotenv').config()
 const express = require('express')
 const { sequelize } = require('./models')
 const userRoute =  require('./src/routes/userRoute')
-const billsPaymentRouteRoute =  require('./src/routes/billsPaymentRoute')
+const billsPaymentRoute =  require('./src/routes/billsPaymentRoute')
 const app = express()
 const swaggerUi = require('swagger-ui-express')
 const swaggerJsdoc = require('swagger-jsdoc')
@@ -50,4 +50,4 @@ app.get('/', (req, res) => {
 
 
 app.use('/user', userRoute)
-app.use('/bills', billsPaymentRouteRoute)
+app.use('/bills', billsPaymentRoute)

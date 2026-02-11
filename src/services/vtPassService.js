@@ -3,7 +3,25 @@ const axios = require('axios')
 const { request_id } = require('../utils/utils')
 
 
-const mtnAirtimePurchase = async (data) => {
+const getAllServices = async () => {
+    try {
+        const response = await axios.get(
+            'https://sandbox.vtpass.com/api/services',
+            {
+                headers: {
+                    "api-key": process.env.VTPASS_API_KEY,
+                    "public-key": process.env.VTPASS_PUBLIC_KEY,
+                    "Content-Type": "application/json"
+                }
+            }
+        )
+        return response.data
+    } catch (error) {
+        throw error
+    }
+}
+
+const airtimePurchase = async (data) => {
     try {
         const response = await axios.post(
             'https://sandbox.vtpass.com/api/pay',
@@ -28,7 +46,7 @@ const mtnAirtimePurchase = async (data) => {
     }
 }
 
-const ikejaElectricBillVerify = async (data) => {
+const electricBillVerify = async (data) => {
     try {
         const response = await axios.post(
             "https://sandbox.vtpass.com/api/merchant-verify",
@@ -52,10 +70,10 @@ const ikejaElectricBillVerify = async (data) => {
     }
 }
 
-const ikejaElectricBillPayment = async (data) => {
+const electricBillPayment = async (data) => {
     try {
         const response = await axios.post(
-            " https://sandbox.vtpass.com/api/pay",
+            "https://sandbox.vtpass.com/api/pay",
             {
                 request_id: request_id(),
                 serviceID: data.serviceID,
@@ -79,9 +97,55 @@ const ikejaElectricBillPayment = async (data) => {
     }
 }
 
+const getVariationCode = async (serviceID) => {
+     try {
+        const response = await axios.get(
+            `https://sandbox.vtpass.com/api/service-variations?serviceID=${serviceID}`,
+            {
+                headers: {
+                    "api-key": process.env.VTPASS_API_KEY,
+                    "public-key": process.env.VTPASS_PUBLIC_KEY,
+                    "Content-Type": "application/json"
+                }
+            }
+        )
+        return response.data
+     } catch (error) {
+        throw error
+     }
+}
+
+const dataPurchase = async (data) => {
+    try {
+        const response = await axios.post(
+            'https://sandbox.vtpass.com/api/pay',
+            {
+                request_id: request_id(),
+                serviceID: data.serviceID,
+                variation_code: data.variation_code,
+                amount: parseInt(data.amount),
+                phone: data.phone
+            },
+            {
+                headers: {
+                    "api-key": process.env.VTPASS_API_KEY,
+                    "secret-key": process.env.VTPASS_SECRET_KEY,
+                    "Content-Type": "application/json"
+                }
+            }
+        )
+        return response.data
+    } catch (error) {
+        throw error
+    }
+}
+
 
 module.exports = {
-    mtnAirtimePurchase,
-    ikejaElectricBillVerify,
-    ikejaElectricBillPayment
+    airtimePurchase,
+    electricBillVerify,
+    electricBillPayment,
+    getAllServices,
+    getVariationCode,
+    dataPurchase
 }

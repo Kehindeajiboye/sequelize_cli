@@ -275,6 +275,7 @@ const startForgetPassword = async (req, res) => {
 
         const otpCode = generateRandomOtp()
         const otpExpiry = Date.now() + 5 * 60 * 1000
+        await otps.destroy({ where: { customer_id: userExists.customer_id } })
         await otps.create({
             otp_code: otpCode,
             customer_id: userExists.customer_id,

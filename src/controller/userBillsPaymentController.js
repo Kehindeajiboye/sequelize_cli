@@ -1,7 +1,30 @@
-const { mtnAirtimePurchase, ikejaElectricBillVerify, ikejaElectricBillPayment } = require("../services/vtPassService")
+const { airtimePurchase, getAllServices, electricBillVerify, electricBillPayment, dataPurchase } = require("../services/vtPassService")
 const { users, wallets, otp, transactions } = require('../../models')
-const { v4 : uuidv4 } = require ('uuid');
+const { v4: uuidv4 } = require('uuid');
 const { initializePayment, verifyPayment } = require("../services/paystackServices");
+
+
+const getVtpassAllServices = async (req, res) => {
+    try {
+        const response = await getAllServices()
+        if (response.response_description !== "000") {
+            return res.status(400).json({
+                status: false,
+                message: "Unable to fetch services"
+            })
+        }
+        return res.status(200).json({
+            status: true,
+            message: "Services fetched successfully",
+            data: response
+        })
+    } catch (error) {
+        return res.status(500).json({
+            status: false,
+            message: error.message
+        })
+    }
+}
 
 const startFundWallet = async (req, res) => {
     const { customer_id } = req.params
@@ -84,10 +107,10 @@ const completeFundWallet = async (req, res) => {
     }
 }
 
-const mtnAirtimePurchaseController = async (req, res) => {
+const vtpassAirtimePurchase = async (req, res) => {
     const { serviceID, amount, phone } = req.body
     try {
-        const response = await mtnAirtimePurchase(req.body)
+        const response = await airtimePurchase(req.body)
         if (response.code !== "000") {
             return res.status(400).json({
                 status: false,
@@ -107,10 +130,10 @@ const mtnAirtimePurchaseController = async (req, res) => {
     }
 }
 
-const ikejaElectricBillVerifyController = async (req, res) => {
+const vtpassElectricBillVerify = async (req, res) => {
     const { billersCode, serviceID, type } = req.body
     try {
-        const response = await ikejaElectricBillVerify(req.body)
+        const response = await electricBillVerify(req.body)
         if (response.code !== "000") {
             return res.status(400).json({
                 status: false,
@@ -130,10 +153,10 @@ const ikejaElectricBillVerifyController = async (req, res) => {
     }
 }
 
-const ikejaElectricBillPaymentController = async (req, res) => {
+const vtpassElectricBillPayment = async (req, res) => {
     const { serviceID, billersCode, variation_code, amount, phone, type } = req.body
     try {
-        const response = await ikejaElectricBillPayment(req.body)
+        const response = await electricBillPayment(req.body)
         if (response.code !== "000") {
             return res.status(400).json({
                 status: false,
@@ -153,10 +176,59 @@ const ikejaElectricBillPaymentController = async (req, res) => {
     }
 }
 
+const getVtpassVariationCode = async (req, res) => {
+    const { serviceID } = req.params
+    try {
+        const response = await getVariationCode(serviceID)
+        if (response.code !== "000") {
+            return res.status(400).json({
+                status: false,
+                message: `Unable to fetch ${serviceID} variation code`
+            })
+        }
+        return res.status(200).json({
+            status: true,
+            message: `Variation code fetched successfully for service ${serviceID}`,
+            data: response
+        })
+    } catch (error) {
+        return res.status(500).json({
+            status: false,
+            message: error.message
+        })
+    }
+}
+
+const vtpassDataPurchase = async (req, res) => {
+    const { serviceID, billersCode, variation_code, amount, phone } = req.body
+    try {
+        const response = await dataPurchase(req.body)
+        if (response.code !== "000") {
+            return res.status(400).json({
+                status: false,
+                message: "Unable to process data purchase"
+            })
+        }
+        return res.status(200).json({
+            status: true,
+            message: `${serviceID} purchase processed successfully`,
+            data: response
+        })
+    } catch (error) {
+        return res.status(500).json({
+            status: false,
+            message: error.message
+        })
+    }
+}
+
 module.exports = {
-    mtnAirtimePurchaseController,
-    ikejaElectricBillVerifyController,
-    ikejaElectricBillPaymentController,
     startFundWallet,
-    completeFundWallet
+    completeFundWallet,
+    getVtpassAllServices,
+    vtpassAirtimePurchase,
+    vtpassElectricBillVerify,
+    vtpassElectricBillPayment,
+    getVtpassVariationCode,
+    vtpassDataPurchase
 }
