@@ -1,7 +1,8 @@
-const { airtimePurchase, getAllServices, electricBillVerify, electricBillPayment, dataPurchase } = require("../services/vtPassService")
+const { airtimePurchase, getAllServices, electricBillVerify, electricBillPayment, dataPurchase, waecRegistration, verifySmartcard, purchaseDstvSubscription, getVariationCode } = require("../services/vtPassService")
 const { users, wallets, otp, transactions } = require('../../models')
 const { v4: uuidv4 } = require('uuid');
 const { initializePayment, verifyPayment } = require("../services/paystackServices");
+const { checkCusBalance, debitCusWallet } = require("../utils/utils");
 
 
 const getVtpassAllServices = async (req, res) => {
@@ -27,10 +28,11 @@ const getVtpassAllServices = async (req, res) => {
 }
 
 const startFundWallet = async (req, res) => {
-    const { customer_id } = req.params
+    const { customer_id, email } = req.user
     const { amount } = req.body
+    console.log("customer_id:", customer_id)
     try {
-        const user = await users.findOne({ where: { id: customer_id } })
+        const user = await users.findOne({ where: { customer_id } })
         if (!user) {
             return res.status(404).json({
                 status: false,
@@ -42,7 +44,8 @@ const startFundWallet = async (req, res) => {
             email: user.email,
             amount
         }
-        const initializePaymentResponse = initializePayment(data)
+        const initializePaymentResponse = await initializePayment(data)
+        // console.log("initializePaymentResponse:", initializePaymentResponse)
         if (!initializePaymentResponse.data.status) {
             return res.status(400).json({
                 status: false,
@@ -109,7 +112,9 @@ const completeFundWallet = async (req, res) => {
 
 const vtpassAirtimePurchase = async (req, res) => {
     const { serviceID, amount, phone } = req.body
+    const { customer_id } = req.user
     try {
+        await checkCusBalance(customer_id, amount)
         const response = await airtimePurchase(req.body)
         if (response.code !== "000") {
             return res.status(400).json({
@@ -117,6 +122,8 @@ const vtpassAirtimePurchase = async (req, res) => {
                 message: "Unable to initialize transaction"
             })
         }
+        await debitCusWallet(customer_id, amount)
+
         return res.status(200).json({
             status: true,
             message: "Transaction successful",
@@ -155,7 +162,9 @@ const vtpassElectricBillVerify = async (req, res) => {
 
 const vtpassElectricBillPayment = async (req, res) => {
     const { serviceID, billersCode, variation_code, amount, phone, type } = req.body
+    const { customer_id } = req.user
     try {
+        await checkCusBalance(customer_id, amount)
         const response = await electricBillPayment(req.body)
         if (response.code !== "000") {
             return res.status(400).json({
@@ -163,6 +172,8 @@ const vtpassElectricBillPayment = async (req, res) => {
                 message: "Unable to process payment"
             })
         }
+        await debitCusWallet(customer_id, amount)
+
         return res.status(200).json({
             status: true,
             message: "Payment processed successfully",
@@ -180,7 +191,7 @@ const getVtpassVariationCode = async (req, res) => {
     const { serviceID } = req.params
     try {
         const response = await getVariationCode(serviceID)
-        if (response.code !== "000") {
+        if (response.response_description !== "000") {
             return res.status(400).json({
                 status: false,
                 message: `Unable to fetch ${serviceID} variation code`
@@ -201,7 +212,9 @@ const getVtpassVariationCode = async (req, res) => {
 
 const vtpassDataPurchase = async (req, res) => {
     const { serviceID, billersCode, variation_code, amount, phone } = req.body
+    const { customer_id } = req.user
     try {
+        await checkCusBalance(req.id, amount)
         const response = await dataPurchase(req.body)
         if (response.code !== "000") {
             return res.status(400).json({
@@ -209,9 +222,89 @@ const vtpassDataPurchase = async (req, res) => {
                 message: "Unable to process data purchase"
             })
         }
+        await debitCusWallet(customer_id, amount)
+
         return res.status(200).json({
             status: true,
             message: `${serviceID} purchase processed successfully`,
+            data: response
+        })
+    } catch (error) {
+        return res.status(500).json({
+            status: false,
+            message: error.message
+        })
+    }
+}
+
+const vtpassWaecRegistration = async (req, res) => {
+    const { serviceID, billersCode, variation_code, amount, quantity, phone } = req.body
+    const { customer_id } = req.user
+    try {
+        await checkCusBalance(customer_id, amount)
+        const response = await waecRegistration(req.body)
+        if (response.code !== "000") {
+            return res.status(400).json({
+                status: false,
+                message: "Unable to process waec registration"
+            })
+        }
+        await debitCusWallet(customer_id, amount)
+
+        return res.status(200).json({
+            status: true,
+            message: "Waec registration processed successfully",
+            data: response
+        })
+    } catch (error) {
+        return res.status(500).json({
+            status: false,
+            message: error.message
+        })
+    }
+}
+
+const vtpassVerifySmartcard = async (req, res) => {
+    const { serviceID, billersCode } = req.body
+    try {
+        const response = await verifySmartcard(req.body)
+        if (response.code !== "000") {
+            return res.status(400).json({
+                status: false,
+                message: "Unable to verify smartcard"
+            })
+        }
+        return res.status(200).json({
+            status: true,
+            message: "Smartcard verified successfully",
+            data: response
+        })
+    } catch (error) {
+        return res.status(500).json({
+            status: false,
+            message: error.message
+        })
+    }
+}
+
+const vtpassPurchaseDstvSubscription = async (req, res) => {
+    const { serviceID, billersCode, variation_code, amount, phone, subscription_type, quantity } = req.body
+    const { customer_id } = req.user
+    try {
+        await checkCusBalance(customer_id, amount)
+        const response = await purchaseDstvSubscription(req.body)
+        console.log("purchaseDstvSubscription response:", response)
+        if (response.code !== "000") {
+            return res.status(400).json({
+                status: false,
+                message: "Unable to process dstv subscription purchase"
+            })
+        }
+        await debitCusWallet(customer_id, amount)
+
+        return res.status(200).json({
+            status: true,
+            message: "Dstv subscription purchase processed successfully",
             data: response
         })
     } catch (error) {
@@ -230,5 +323,8 @@ module.exports = {
     vtpassElectricBillVerify,
     vtpassElectricBillPayment,
     getVtpassVariationCode,
-    vtpassDataPurchase
+    vtpassDataPurchase,
+    vtpassWaecRegistration,
+    vtpassVerifySmartcard,
+    vtpassPurchaseDstvSubscription
 }

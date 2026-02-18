@@ -1,3 +1,8 @@
+const { users, wallets, otp, transactions } = require('../../models')
+const { v4: uuidv4 } = require('uuid')
+
+
+
 const request_id = () => {
     const today = new Date()
 
@@ -29,7 +34,31 @@ const generateRandomOtp = () => {
     return Math.floor(100000 + Math.random() * 900000);
 };
 
+const checkCusBalance = async (customer_id, amount) => {
+    const wallet = await wallets.findOne({ where: { customer_id } })
+    if (!wallet) {
+        throw new Error("Wallet not found")
+    }
+    if (wallet.balance < amount) {
+        throw new Error("Insufficient balance")
+    }
+}
+
+const debitCusWallet = async (customer_id, amount) => {
+    await wallets.decrement(
+        { balance: amount },
+        { where: { customer_id } }
+    ),
+        await transactions.create({
+            transaction_id: uuidv4(),
+            transaction_reference: uuidv4(),
+            customer_id,
+            amount        })
+}
+
 module.exports = {
     request_id,
-    generateRandomOtp
+    generateRandomOtp,
+    checkCusBalance,
+    debitCusWallet
 }

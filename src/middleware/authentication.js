@@ -11,7 +11,7 @@ const Authorization = (req, res, next) => {
         if (err) {
             throw new Error('Invalid token')
         }
-        req.id = decoded.customer_id
+        req.user = decoded
         next()
     })
    } catch (error) {

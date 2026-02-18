@@ -1,5 +1,5 @@
 const express = require('express')
-const { Authorization } = require('../middleware/middleware')
+const { Authorization } = require('../middleware/authentication')
 const { createNewUser, loginUser, updateUser, verifyUser, resendOtp, startForgetPassword, completeForgetPassword } = require('../controller/userController')
 
 const router = express.Router()
@@ -38,9 +38,9 @@ const router = express.Router()
  *                 type: string
  *     responses:
  *       201:
- *         description: Account created successfully
+ *         description: Check email for otp verification code
  *       422:
- *         description: Bad request
+ *         description: Server error
  */
 
 
@@ -74,8 +74,64 @@ const router = express.Router()
  *       201:
  *         description: "Logged in successful"
  *       422:
- *         description: Bad request
+ *         description: Server error
  */
+
+
+/**
+ * @swagger
+ * /verify/{email}/{otp}:
+ *   post:
+ *     summary: Verify a user account
+ *     description: Verifies a user account using email and OTP
+ *     tags:
+ *       - Customers
+ *     parameters:
+ *       - in: path
+ *         name: email
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User email address
+ *       - in: path
+ *         name: otp
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: One Time Password sent to user
+ *     responses:
+ *       201:
+ *         description: Account verified successfully
+ *       422:
+ *         description: An error occurred while verifying OTP
+ */
+
+
+/**
+ * @swagger
+ * /resend-otp/{email}:
+ *   post:
+ *     summary: Resend OTP to user
+ *     description: Resends OTP to a user's email address
+ *     tags:
+ *       - Customers
+ *     parameters:
+ *       - in: path
+ *         name: email
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User email address
+ *     responses:
+ *       201:
+ *         description: OTP resent successfully
+ *       422:
+ *         description: An error occurred while resending OTP
+ */
+
+
+
+
 router.post('/signup', createNewUser)
 router.get('/verify/:email/:otp', verifyUser)
 router.post('/resend-otp/:email', resendOtp)
