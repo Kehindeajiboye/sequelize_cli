@@ -1,13 +1,20 @@
-const express = require('express')
-const { Authorization } = require('../middleware/authentication')
-const { createNewUser, loginUser, updateUser, verifyUser, resendOtp, startForgetPassword, completeForgetPassword } = require('../controller/userController')
+const express = require("express");
+const { Authorization } = require("../middleware/authentication");
+const {
+  createNewUser,
+  loginUser,
+  updateUser,
+  verifyUser,
+  resendOtp,
+  startForgetPassword,
+  completeForgetPassword,
+} = require("../controller/userController");
 
-const router = express.Router()
-
+const router = express.Router();
 
 /**
  * @swagger
- * /signup:
+ * /user/signup:
  *   post:
  *     summary: Create a new customer
  *     description: Creates a new user record
@@ -47,7 +54,7 @@ const router = express.Router()
 /**
 
  * @swagger
- * /login:
+ * /user/login:
  *   post:
  *     summary: Login in customer
  *     description: Logins in existing user record
@@ -80,7 +87,7 @@ const router = express.Router()
 
 /**
  * @swagger
- * /verify/{email}/{otp}:
+ * /user/verify/{email}/{otp}:
  *   post:
  *     summary: Verify a user account
  *     description: Verifies a user account using email and OTP
@@ -97,7 +104,7 @@ const router = express.Router()
  *         name: otp
  *         required: true
  *         schema:
- *           type: string
+ *           type: integer
  *         description: One Time Password sent to user
  *     responses:
  *       201:
@@ -109,7 +116,7 @@ const router = express.Router()
 
 /**
  * @swagger
- * /resend-otp/{email}:
+ * /user/resend-otp/{email}:
  *   post:
  *     summary: Resend OTP to user
  *     description: Resends OTP to a user's email address
@@ -130,15 +137,109 @@ const router = express.Router()
  */
 
 
+/**
+ * @swagger
+ * /user/start-forget-password:
+ *   post:
+ *     summary: Start forget password process
+ *     description: Initiates the forget password process for a user
+ *     tags:
+ *       - Customers
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Check email for OTP to reset password
+ *       422:
+ *         description: An error occurred while processing the request
+ */
 
 
-router.post('/signup', createNewUser)
-router.get('/verify/:email/:otp', verifyUser)
-router.post('/resend-otp/:email', resendOtp)
-router.post('/start-forget-password', startForgetPassword)
-router.put('/complete-forget-password/:email/:otp', completeForgetPassword)
-router.post('/login', loginUser)
-router.put('/update', Authorization, updateUser)
+/**
+ * @swagger
+ * /user/complete-forget-password/{email}/{otp}:
+ *   put:
+ *     summary: Complete forget password process
+ *     description: Completes the forget password process for a user using email and OTP
+ *     tags:
+ *       - Customers
+ *     parameters:
+ *       - in: path
+ *         name: email
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User email address
+ *       - in: path
+ *         name: otp
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: One Time Password sent to user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - new_password
+ *             properties:
+ *               new_password:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Password reset successfully
+ *       422:
+ *         description: An error occurred while resetting password
+ */
 
 
-module.exports = router
+/**
+ * @swagger
+ * /user/update:
+ *   put:
+ *     summary: Update a customer's profile
+ *     description: Updates an existing user's profile information
+ *     tags:
+ *       - Customers
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - key-value pairs of fields to update
+ *             properties:
+ *               key-value pairs of fields to update:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Profile updated successfully
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       422:
+ *         description: An error occurred while updating profile
+ */
+
+router.post("/signup", createNewUser);
+router.get("/verify/:email/:otp", verifyUser);
+router.post("/resend-otp/:email", resendOtp);
+router.post("/start-forget-password", startForgetPassword);
+router.put("/complete-forget-password/:email/:otp", completeForgetPassword);
+router.post("/login", loginUser);
+router.put("/update", Authorization, updateUser);
+
+module.exports = router;

@@ -245,12 +245,12 @@ const updateUser = async (req, res) => {
         await user.update(value)
         res.status(200).json({
             status: true,
-            message: "User updated successfully"
+            message: "Profile updated successfully"
         })
     } catch (error) {
         res.status(500).json({
             status: false,
-            message: error.message || "Server error"
+            message: error.message || "An error occurred while updating profile"
         })
     }
 }
@@ -296,7 +296,7 @@ const startForgetPassword = async (req, res) => {
         );
         res.status(200).json({
             status: true,
-            message: "Password reset instructions have been sent to your email",
+            message: "Check email for OTP to reset password",
         });
     } catch (error) {
         res.status(500).json({

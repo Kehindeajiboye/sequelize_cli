@@ -105,7 +105,7 @@ const completeFundWallet = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             status: false,
-            message: error.message
+            message: error.message || "An error occurred while processing the request"
         })
     }
 }
@@ -132,7 +132,7 @@ const vtpassAirtimePurchase = async (req, res) => {
     } catch (error) {
         res.status(500).json({
             status: false,
-            message: error.message
+            message: error.message || "An error occurred while processing the request"
         })
     }
 }
@@ -155,13 +155,13 @@ const vtpassElectricBillVerify = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             status: false,
-            message: error.message
+            message: error.message || "An error occurred while processing the request"
         })
     }
 }
 
 const vtpassElectricBillPayment = async (req, res) => {
-    const { serviceID, billersCode, variation_code, amount, phone, type } = req.body
+    const { serviceID, billersCode, variation_code, amount, phone } = req.body
     const { customer_id } = req.user
     try {
         await checkCusBalance(customer_id, amount)
@@ -176,13 +176,13 @@ const vtpassElectricBillPayment = async (req, res) => {
 
         return res.status(200).json({
             status: true,
-            message: "Payment processed successfully",
+            message: "Biller paid successfully",
             data: response
         })
     } catch (error) {
         return res.status(500).json({
             status: false,
-            message: error.message
+            message: error.message || "An error occurred while processing the request"
         })
     }
 }
@@ -214,7 +214,7 @@ const vtpassDataPurchase = async (req, res) => {
     const { serviceID, billersCode, variation_code, amount, phone } = req.body
     const { customer_id } = req.user
     try {
-        await checkCusBalance(req.id, amount)
+        await checkCusBalance(customer_id, amount)
         const response = await dataPurchase(req.body)
         if (response.code !== "000") {
             return res.status(400).json({
@@ -232,16 +232,18 @@ const vtpassDataPurchase = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             status: false,
-            message: error.message
+            message: error.message || "An error occurred while processing the request"
         })
     }
 }
 
 const vtpassWaecRegistration = async (req, res) => {
-    const { serviceID, billersCode, variation_code, amount, quantity, phone } = req.body
+    const { serviceID, variation_code, amount, quantity, phone } = req.body
     const { customer_id } = req.user
     try {
-        await checkCusBalance(customer_id, amount)
+        total= amount * quantity
+        console.log("total:", total)
+        await checkCusBalance(customer_id, total)
         const response = await waecRegistration(req.body)
         if (response.code !== "000") {
             return res.status(400).json({
@@ -249,17 +251,17 @@ const vtpassWaecRegistration = async (req, res) => {
                 message: "Unable to process waec registration"
             })
         }
-        await debitCusWallet(customer_id, amount)
+        await debitCusWallet(customer_id, total)
 
         return res.status(200).json({
             status: true,
-            message: "Waec registration processed successfully",
+            message: "Waec registration pin processed successfully",
             data: response
         })
     } catch (error) {
         return res.status(500).json({
             status: false,
-            message: error.message
+            message: error.message || "An error occurred while processing the request"
         })
     }
 }
@@ -282,7 +284,7 @@ const vtpassVerifySmartcard = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             status: false,
-            message: error.message
+            message: error.message || "An error occurred while processing the request"
         })
     }
 }
@@ -310,7 +312,7 @@ const vtpassPurchaseDstvSubscription = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             status: false,
-            message: error.message
+            message: error.message || "An error occurred while processing the request"
         })
     }
 }
