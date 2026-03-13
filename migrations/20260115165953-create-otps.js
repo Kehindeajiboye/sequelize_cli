@@ -14,7 +14,7 @@ module.exports = {
       },
       customer_id: {
         type: Sequelize.STRING,
-        foreeignKey: true,
+        foreignKey: true,
         references: {
           model: 'users',
           key: 'customer_id'
