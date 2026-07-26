@@ -60,5 +60,5 @@ module.exports = {
     request_id,
     generateRandomOtp,
     checkCusBalance,
-    debitCusWallet
+    debitCusWallet,
 }

@@ -40,7 +40,7 @@ const router = express.Router();
  *                type: integer
  *     responses:
  *       201:
- *         description: "Logged in successful"
+ *         description: "Payment initialized successfully"
  *       422:
  *         description: Server error
  */

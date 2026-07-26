@@ -8,7 +8,7 @@ const initializePayment = async (data) => {
         url: `${process.env.PAYSTACK_BASE_URL}/transaction/initialize`,
         headers: {
             Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
-            'content_type': 'Content-Type: application/json'
+            'Content-Type': 'application/json'
         },
         data: {
             email: data.email,
